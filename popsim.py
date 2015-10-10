@@ -297,7 +297,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-dpi', '--dpi',  default=None, action='store', type=int, dest='dpi', help='DPI: dots per inch, None means default, perhaps this should be changed for prodcution plots')
 
-    parser.add_argument('-size', '--papersize',  default=[8,11.5], action='store', dest='papersize', help='size of the paper, this needs to be a list of two values, for example [8,11.5]')
+    parser.add_argument('-size', '--papersize',  default="[8,11.5]", action='store', dest='papersize', help='size of the paper, this needs to be a list of two values, for example [8,11.5]')
 
     args = parser.parse_args()
 
@@ -343,7 +343,6 @@ if __name__ == '__main__':
     print "Marker size:       ", msize
     print "Sample color:      ", scolor
     print "Plot ratio:        ", ratio
-    #print [i for i in papersize[1:-1].split(',')]
     width, height = [float(i) for i in papersize[1:-1].split(',')]
     print "Plot size:         ", width, "x", height
     papersize = [ width, height ]
