@@ -35,7 +35,7 @@ A PDF file is created with two plots on one page:
 - the population history through time 
 - and a genealogy of the sample
 
-![Example picture](https://github.com/pbeerli/popsim/tree/master/popsim_example.png "Example output")
+![Example picture](http://www.peterbeerli.com/classdata/githubpics/popsim_example.png "Example output")
 
 The default filename is set in the DEFAULT section of the program and is
 wf.pdf
