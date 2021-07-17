@@ -6,7 +6,7 @@
 # and a genealogy of a sample.
 # The MIT License (MIT)
 # 
-# Copyright (c) 2015 Peter Beerli
+# Copyright (c) 2015,2021 Peter Beerli
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 ############################################################################
-
+# History:
+# 2021: update to python 3
+#
 import sys
+import time
 import numpy as np
 import matplotlib
 matplotlib.use('PDF')
@@ -39,12 +42,12 @@ import matplotlib.gridspec as gridspec
 #DEFAULTS
 ############################################################################
 GENERATIONS  = 50
-NE           =  15
-GROWTH       = 0.00
+NE           = 15
+GROWTH       =  0.00
 SAMPLESIZE   = 10
 #
 SEED         = None
-MODEL        = 'WrightFisher' 
+MODEL        = 'WRIGHTFISHER' 
 VAR          = 1.0
 MSIZE        = 3.0
 SCOLOR       = 'b'
@@ -59,8 +62,8 @@ def intersection(c1,c2):
 #############################################################################
 
 
-def mymodel(start, ne, oldne, std, RS, mymodel='Moran'):
-    if mymodel=='Moran':
+def mymodel(start, ne, oldne, std, RS, mymodel='MORAN'):
+    if mymodel=='MORAN':
         diff = ne - oldne
         a=list(range(0,ne))
         if diff>0:
@@ -76,9 +79,9 @@ def mymodel(start, ne, oldne, std, RS, mymodel='Moran'):
             a.pop(RS.randint(0,len(a)))
             a.append(RS.randint(0,ne))
     else:
-        if mymodel=='WrightFisher':
+        if mymodel=='WRIGHTFISHER':
             a = RS.randint(0,ne,oldne)
-        else: # mymodel=='Canning':
+        else: # mymodel=='CANNING':
             alpha = 1.0 / (std * std)
             beta = 1./alpha
             offsprings=[]
@@ -95,7 +98,7 @@ def mymodel(start, ne, oldne, std, RS, mymodel='Moran'):
     return a
 
 
-def popsim(generations=50,ne=30,growth=0,samples=[], seed=None, model='Moran', std=1.0, msize=3.0, scolor='b',filename=FILENAME,mydpi=0,myratio=[0,0],mysize=[0,0]):
+def popsim(generations=50,ne=30,growth=0,samples=[], seed=None, model='MORAN', std=1.0, msize=3.0, scolor='b',filename=FILENAME,mydpi=0,myratio=[0,0],mysize=[0,0]):
     RS = np.random.mtrand.RandomState()
     RS.seed(seed)
     samplesize = len(samples)
@@ -151,13 +154,13 @@ def popsim(generations=50,ne=30,growth=0,samples=[], seed=None, model='Moran', s
     if mydpi > 0:
         fig.set_dpi(mydpi)
     DPI = fig.get_dpi()
-    print "DPI:               ", DPI
+    print ("DPI:               ", DPI)
 
     if mysize[0] > 0 and mysize[1] > 0:
             fig.set_size_inches(mysize[0],mysize[1])
     DefaultSize = fig.get_size_inches()
-    print "Default size:      ", DefaultSize[0],"x", DefaultSize[1], "in*in"
-    print "Image size:         %i x %i pt*pt" %(DPI*DefaultSize[0], DPI*DefaultSize[1])
+    print ("Default size:      ", DefaultSize[0],"x", DefaultSize[1], "in*in")
+    print ("Image size:         %i x %i pt*pt" %(DPI*DefaultSize[0], DPI*DefaultSize[1]))
     if (myratio[0]==0) and (myratio[1]==0):
         myratio = [nemax/(samplesize+2),2]
     gs = gridspec.GridSpec(2, 1,height_ratios=myratio)
@@ -203,9 +206,9 @@ def popsim(generations=50,ne=30,growth=0,samples=[], seed=None, model='Moran', s
             z=[]
             z.append(i)
     tips = zall.pop(0)
-    #print "tips", tips
+    #print ("tips", tips)
     for t in tips:
-        #print "t",t 
+        #print ("t",t) 
         for za in zall:
             for z in za:
                 if t[-1] == z[0]:
@@ -215,7 +218,7 @@ def popsim(generations=50,ne=30,growth=0,samples=[], seed=None, model='Moran', s
     onegen = np.arange(nemax/(len(sample))/2.,nemax,nemax/(len(sample)))
     tree=[]
     for i in atips[0]:
-        #        print onegen
+        #        print (onegen)
         d = {}
         for a, b in zip(i.tolist(), onegen):
             d.setdefault(a, []).append(b)
@@ -301,7 +304,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    themodel = args.model
+    themodel = args.model.upper()
     thestd = np.sqrt(args.offspring_variance)
     thegrowth = args.growth
     generations  = args.generations
@@ -310,11 +313,14 @@ if __name__ == '__main__':
     samplesize = args.samplesize
     if samplesize>ne:
         samplesize=ne
-    population = range(0,ne)
+    population = list(range(0,ne))
     np.random.shuffle(population)
     sample       = population[:samplesize] # samplesize
     sample.sort() # this represents a particular set of individuals
-    seed = args.seed
+    if args.seed == None:
+        seed = time.process_time_ns()
+    else:
+        seed = int(args.seed)
     filename = args.filename
     msize = args.markersize
     scolor = args.color
@@ -323,28 +329,28 @@ if __name__ == '__main__':
     papersize = args.papersize
 
     if not(themodel in allowed_models):
-        print "Type", sys.argv[0], "--help for allowed settings"
+        print ("Type", sys.argv[0], "--help for allowed settings")
 
-    print "Population model:  ", themodel
+    print ("Population model:  ", themodel)
     if themodel=='MORAN':
         thestd = np.sqrt(1.0/ne)
     elif themodel=='WRIGHTFISHER':
         thestd= 1.0
     else:
         pass
-    print "Effective size:    ", ne
-    print "Generations:       ", generations
-    print "Samplesize:        ", samplesize
-    print "Offspring variance:", thestd*thestd
-    print "Growth rate:       ", thegrowth
+    print ("Effective size:    ", ne)
+    print ("Generations:       ", generations)
+    print ("Samplesize:        ", samplesize)
+    print ("Offspring variance:", thestd*thestd)
+    print ("Growth rate:       ", thegrowth)
     
-    print "Random seed:       ", seed
-    print "Filename:          ", filename
-    print "Marker size:       ", msize
-    print "Sample color:      ", scolor
-    print "Plot ratio:        ", ratio
+    print ("Random seed:       ", seed)
+    print ("Filename:          ", filename)
+    print ("Marker size:       ", msize)
+    print ("Sample color:      ", scolor)
+    print ("Plot ratio:        ", ratio)
     width, height = [float(i) for i in papersize[1:-1].split(',')]
-    print "Plot size:         ", width, "x", height
+    print ("Plot size:         ", width, "x", height)
     papersize = [ width, height ]
     if dpi==None:
         thedpi=0
